@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PodDoctor — AI Kubernetes Auto-Healer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 32 32" fill="none">
+          <path d="M16 2 L29 9 V23 L16 30 L3 23 V9 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="4" fill="currentColor"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Pod<span>Doctor</span></h1>
+        <p class="tagline">AI-powered Kubernetes auto-healer</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      {% if demo_mode %}<span class="pill pill-demo">● DEMO MODE</span>{% else %}<span class="pill pill-live">● LIVE CLUSTER</span>{% endif %}
+      <span class="pill" id="last-update">syncing…</span>
+      <button id="refresh-btn" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- KPI ROW -->
+    <section class="kpi-row">
+      <div class="card kpi">
+        <div class="kpi-icon icon-blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        </div>
+        <div>
+          <div class="kpi-label">Total Pods</div>
+          <div class="kpi-value" id="kpi-pods">—</div>
+        </div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-icon icon-green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div>
+          <div class="kpi-label">Healthy</div>
+          <div class="kpi-value" id="kpi-healthy">—</div>
+        </div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-icon icon-red">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+          <div class="kpi-label">Active Issues</div>
+          <div class="kpi-value" id="kpi-issues">—</div>
+        </div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-icon icon-purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        </div>
+        <div>
+          <div class="kpi-label">Nodes</div>
+          <div class="kpi-value" id="kpi-nodes">—</div>
+        </div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-icon icon-orange">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+        </div>
+        <div>
+          <div class="kpi-label">Health Score</div>
+          <div class="kpi-value" id="kpi-score">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN GRID -->
+    <section class="grid">
+      <!-- AI ISSUES PANEL -->
+      <div class="card span-2">
+        <div class="card-header">
+          <div>
+            <h2><span class="ai-badge">AI</span> Detected Issues</h2>
+            <p class="muted">Ranked by severity. Click an issue to inspect & auto-heal.</p>
+          </div>
+          <div class="filters">
+            <select id="ns-filter">
+              <option value="all">All namespaces</option>
+            </select>
+          </div>
+        </div>
+        <div id="issues-list" class="issues-list">
+          <div class="empty">Loading…</div>
+        </div>
+      </div>
+
+      <!-- CLUSTER MAP -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Cluster Map</h2>
+          <p class="muted">Nodes & resource pressure</p>
+        </div>
+        <div id="nodes" class="nodes"></div>
+      </div>
+
+      <!-- PODS TABLE -->
+      <div class="card span-2">
+        <div class="card-header">
+          <h2>Pods</h2>
+          <p class="muted">All workloads with live status</p>
+        </div>
+        <div class="table-wrap">
+          <table id="pods-table">
+            <thead>
+              <tr>
+                <th>Status</th><th>Name</th><th>Namespace</th><th>Node</th>
+                <th>Restarts</th><th>Age</th><th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- EVENTS -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Live Events</h2>
+          <p class="muted">Latest cluster events</p>
+        </div>
+        <div id="events" class="events"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- DIAGNOSIS MODAL -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card">
+      <button class="modal-close" data-close>×</button>
+      <div id="modal-body">
+        <div class="empty">Diagnosing…</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
