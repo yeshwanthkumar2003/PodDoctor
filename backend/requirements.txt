@@ -1,0 +1,33 @@
+flask==3.0.3
+flask-cors==4.0.1
+flask-socketio==5.3.6
+eventlet==0.36.1
+python-dotenv==1.0.1
+
+# Database
+sqlalchemy==2.0.30
+psycopg2-binary==2.9.9
+alembic==1.13.2
+
+# Cache + queue
+redis==5.0.7
+celery==5.4.0
+
+# AWS
+boto3==1.34.144
+botocore==1.34.144
+
+# Kubernetes
+kubernetes==30.1.0
+
+# AI
+groq==0.9.0
+
+# Crypto for credential storage
+cryptography==43.0.0
+
+# HTTP
+requests==2.32.3
+
+# Prometheus
+prometheus-api-client==0.5.5

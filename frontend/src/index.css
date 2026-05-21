@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #0a0e1a;
+  overflow: hidden;
+  font-family: "Inter", system-ui, sans-serif;
+  color: #e5e7eb;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+@layer components {
+  /* The single panel/card style — used everywhere */
+  .card {
+    background: #111729;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+  }
+  .card-hover {
+    transition: border-color 200ms ease, background-color 200ms ease;
+  }
+  .card-hover:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+  .surface {
+    background: #0e1322;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+  }
+  .label {
+    @apply text-[10px] font-medium tracking-[0.14em] text-white/40 uppercase;
+  }
+  .divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+@layer utilities {
+  .text-mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+}
+
+::selection { background: rgba(34, 211, 238, 0.3); color: white; }
